@@ -12,7 +12,10 @@ return array(
     */
     'route' => [
         'prefix' => 'translations',
-        'middleware' => 'auth',
+        'middleware' => [
+            'web',
+            'auth',
+        ],
     ],
 
 	/**
@@ -20,7 +23,7 @@ return array(
 	 *
 	 * @type boolean
 	 */
-	'delete_enabled' => true,
+	'delete_enabled' => false,
 
 	/**
 	 * Exclude specific groups from Laravel Translation Manager. 
@@ -36,9 +39,24 @@ return array(
 	 */
 	'exclude_groups' => array(),
 
+    /**
+     * Exclude specific directories from Laravel Translation Manager.
+     *
+     * @type array
+     *
+     * 	array(
+     *		'pagination',
+     *		'reminders',
+     *		'validation',
+     *	)
+     */
+    'exclude_dir' => array(
+        'vendor',
+    ),
+
 	/**
 	 * Export translations with keys output alphabetically.
 	 */
-	'sort_keys ' => false,
+	'sort_keys' => true,
 
 );

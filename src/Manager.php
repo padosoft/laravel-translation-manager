@@ -40,12 +40,19 @@ class Manager{
     public function importTranslations($replace = false)
     {
         $counter = 0;
+       //dd(" dir da ecludere da file config ".get_var_dump_output($this->config['exclude_groups'])); exit;
         foreach($this->files->directories($this->app['path.lang']) as $langPath){
             $locale = basename($langPath);
-
+            //echo ("dir trovata ".get_var_dump_output($locale));
+            if(in_array($locale, $this->config['exclude_dir'])) {
+                //echo ("dir eclusa ".get_var_dump_output($locale));
+                continue;
+            }
+            //dd("lingua trovata ".get_var_dump_output($locale)); exit;
             foreach($this->files->allfiles($langPath) as $file) {
 
                 $info = pathinfo($file);
+
                 $group = $info['filename'];
 
                 if(in_array($group, $this->config['exclude_groups'])) {
@@ -143,13 +150,17 @@ class Manager{
             if($group == '*')
                 return $this->exportAllTranslations();
 
-            $tree = $this->makeTree(Translation::ofTranslatedGroup($group)->orderByGroupKeys($this->config['sort_keys'])->get());
+            if ($this->config['sort_keys'])
+                $tree = $this->makeTree(Translation::ofTranslatedGroup($group)->orderByGroupKeys('ltm_translations.key')->get());
+            else
+                $tree = $this->makeTree(Translation::ofTranslatedGroup($group)->get());
 
             foreach($tree as $locale => $groups){
                 if(isset($groups[$group])){
                     $translations = $groups[$group];
                     $path = $this->app['path.lang'].'/'.$locale.'/'.$group.'.php';
                     $output = "<?php\n\nreturn ".var_export($translations, true).";\n";
+                    echo "path ".get_var_dump_output($path)." output ".get_var_dump_output($output);
                     $this->files->put($path, $output);
                 }
             }

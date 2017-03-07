@@ -50,10 +50,10 @@ class Controller extends BaseController
             ->with('deleteEnabled', $this->manager->getConfig('delete_enabled'));
     }
 
-    public function getView()
+    public function getView($group)
     {
-        $groups = func_get_args();
-        $group = implode('/', $groups);
+        //$groups = func_get_args();
+        //$group = implode('/', $groups);
         return $this->getIndex($group);
     }
 

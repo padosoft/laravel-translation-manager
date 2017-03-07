@@ -79,7 +79,6 @@
 <body>
 <div style="width: 80%; margin: auto;">
     <h1>Translation Manager</h1>
-    <p>Warning, translations are not visible until they are exported back to the app/lang file, using 'php artisan translation:export' command or publish button.</p>
     <div class="alert alert-success success-import" style="display:none;">
         <p>Done importing, processed <strong class="counter">N</strong> items! Reload this page to refresh the groups!</p>
     </div>
@@ -100,14 +99,14 @@
             <input type="hidden" name="_token" value="<?php echo csrf_token(); ?>">
             <select name="replace" class="form-control">
                 <option value="0">Append new translations</option>
-                <option value="1">Replace existing translations</option>
+                <!--option value="1">Replace existing translations</option-->
             </select>
             <button type="submit" class="btn btn-success"  data-disable-with="Loading..">Import groups</button>
         </form>
         <form class="form-inline form-find" method="POST" action="<?= action('\Barryvdh\TranslationManager\Controller@postFind') ?>" data-remote="true" role="form" data-confirm="Are you sure you want to scan you app folder? All found translation keys will be added to the database.">
             <input type="hidden" name="_token" value="<?php echo csrf_token(); ?>">
             <p></p>
-            <button type="submit" class="btn btn-info" data-disable-with="Searching.." >Find translations in files</button>
+            <!--<button-- type="submit" class="btn btn-info" data-disable-with="Searching.." >Find translations in files</button-->
         </form>
         <?php endif; ?>
         <?php if(isset($group)) : ?>
@@ -128,6 +127,7 @@
             </select>
         </div>
     </form>
+    <!--
     <?php if($group): ?>
         <form action="<?= action('\Barryvdh\TranslationManager\Controller@postAdd', array($group)) ?>" method="POST"  role="form">
             <input type="hidden" name="_token" value="<?php echo csrf_token(); ?>">
@@ -137,6 +137,7 @@
         </form>
         <hr>
     <h4>Total: <?= $numTranslations ?>, changed: <?= $numChanged ?></h4>
+    -->
     <table class="table">
         <thead>
         <tr>
