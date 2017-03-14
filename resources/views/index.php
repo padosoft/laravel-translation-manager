@@ -50,6 +50,7 @@
             });
 
             $("a.delete-key").click(function(event){
+                alert("delete me");
               event.preventDefault();
               var row = $(this).closest('tr');
               var url = $(this).attr('href');
@@ -73,6 +74,30 @@
                 $('div.success-publish').slideDown();
             });
 
+            $('input[type="checkbox"]').click(function(){
+                var inputValue = $(this).attr("value");
+                //alert("val "+inputValue);
+                //$("." + inputValue).toggle();
+                myId = "ln-locale-"+inputValue;
+
+                var ckVal = $(this).val();
+                //alert(ckVal);
+                if($(this).is(":checked")) {
+                    //$('[id^=myId]').show();
+
+                    $( "."+ckVal ).each(function() {
+                        $( this ).show();
+                    });
+                } else {
+                    //$('[id^=myId]').hide();
+                    $( "."+ckVal).each(function() {
+                        $( this ).hide();
+                    });
+
+                }
+
+            });
+
         })
     </script>
 </head>
@@ -86,14 +111,14 @@
         <p>Done searching for translations, found <strong class="counter">N</strong> items!</p>
     </div>
     <div class="alert alert-success success-publish" style="display:none;">
-        <p>Done publishing the translations for group '<?= $group ?>'!</p>
+        <p>Done publishing the translations !</p>
     </div>
     <?php if(Session::has('successPublish')) : ?>
         <div class="alert alert-info">
             <?php echo Session::get('successPublish'); ?>
         </div>
     <?php endif; ?>
-    <p>
+    <div class="col-md-3">
         <?php if(!isset($group)) : ?>
         <form class="form-inline form-import" method="POST" action="<?= action('\Barryvdh\TranslationManager\Controller@postImport') ?>" data-remote="true" role="form">
             <input type="hidden" name="_token" value="<?php echo csrf_token(); ?>">
@@ -110,13 +135,41 @@
         </form>
         <?php endif; ?>
         <?php if(isset($group)) : ?>
-            <form class="form-inline form-publish" method="POST" action="<?= action('\Barryvdh\TranslationManager\Controller@postPublish', $group) ?>" data-remote="true" role="form" data-confirm="Are you sure you want to publish the translations group '<?= $group ?>? This will overwrite existing language files.">
+            <form class="form-inline form-publish" method="POST" action="<?= action('\Barryvdh\TranslationManager\Controller@postPublish', $group)?>" data-remote="true" role="form" data-confirm="Are you sure you want to publish the translations group '<?= $group ?>? This will overwrite existing language files.">
                 <input type="hidden" name="_token" value="<?php echo csrf_token(); ?>">
+                <input type="hidden" name="groupAndKeyArray" value="<php echo serialize($groupAndKeyArray) ?>">
                 <button type="submit" class="btn btn-info" data-disable-with="Publishing.." >Publish translations</button>
                 <a href="<?= action('\Barryvdh\TranslationManager\Controller@getIndex') ?>" class="btn btn-default">Back</a>
             </form>
         <?php endif; ?>
-    </p>
+</div>
+    <div class="col-md-3">
+        <form name="filter-form" method="POST" action="<?= action('\Barryvdh\TranslationManager\Controller@postFindOnDb') ?>" accept-charset="UTF-8" id="filter-form">
+            <input type="hidden" name="_token" value="<?php echo csrf_token(); ?>">
+            <div class="input-group custom-search-form">
+                <input type="text" class="form-control" name="search" value="<?php if (isset($search)) echo $search?>" placeholder="search">
+                <span class="input-group-btn">
+                    <button class="btn btn-default" type="submit" id="search-merchants">
+                        <span class="glyphicon glyphicon-search"></span>
+                    </button>
+                    <?php if (isset($search) && $search != '') {?>
+                        <a href="javascript:void(0);" class="btn btn-danger del-filter" type="button" >
+                            <span class="glyphicon glyphicon-remove"></span>
+                        </a>
+                    <?php } ?>
+                </span>
+            </div>
+            <?php if (isset($search) && $search != '') {?>
+                    <?php foreach($locales as $locale): ?>
+                        <b><?= $locale ?></b> <input type="checkbox" value="<?= $locale ?>" id="lang<?= $locale ?>" name="lang<?= $locale ?>" checked="checked">&nbsp;&nbsp;&nbsp;&nbsp;
+                    <?php endforeach; ?>
+            <?php } ?>
+
+        </form>
+</div>
+
+
+
     <form role="form">
         <input type="hidden" name="_token" value="<?php echo csrf_token(); ?>">
         <div class="form-group">
@@ -127,23 +180,17 @@
             </select>
         </div>
     </form>
-    <!--
-    <?php if($group): ?>
-        <form action="<?= action('\Barryvdh\TranslationManager\Controller@postAdd', array($group)) ?>" method="POST"  role="form">
-            <input type="hidden" name="_token" value="<?php echo csrf_token(); ?>">
-            <textarea class="form-control" rows="3" name="keys" placeholder="Add 1 key per line, without the group prefix"></textarea>
-            <p></p>
-            <input type="submit" value="Add keys" class="btn btn-primary">
-        </form>
-        <hr>
-    <h4>Total: <?= $numTranslations ?>, changed: <?= $numChanged ?></h4>
-    -->
+
+
+
+    <?php if((isset($group) && !empty($group)) || (isset($search) && !empty($search)) ) { ?>
     <table class="table">
         <thead>
         <tr>
+            <th width="15%">Group</th>
             <th width="15%">Key</th>
             <?php foreach($locales as $locale): ?>
-                <th><?= $locale ?></th>
+                <th class="<?=$locale ?>"><?= $locale ?></th>
             <?php endforeach; ?>
             <?php if($deleteEnabled): ?>
                 <th>&nbsp;</th>
@@ -152,14 +199,20 @@
         </thead>
         <tbody>
 
-        <?php foreach($translations as $key => $translation): ?>
+        <?php foreach($translations as $key => $translation):
+            //var_dump($translations);$group="ciao";
+            $myGroup = $group;
+            if (!$group) $myGroup = $groupAndKeyArray[$key];
+            $editUrl = action('\Barryvdh\TranslationManager\Controller@postEdit', $myGroup);
+            ?>
             <tr id="<?= $key ?>">
+                <td><?= $myGroup ?></td>
                 <td><?= $key ?></td>
                 <?php foreach($locales as $locale): ?>
                     <?php $t = isset($translation[$locale]) ? $translation[$locale] : null?>
 
-                    <td>
-                        <a href="#edit" class="editable status-<?= $t ? $t->status : 0 ?> locale-<?= $locale ?>" data-locale="<?= $locale ?>" data-name="<?= $locale . "|" . $key ?>" id="username" data-type="textarea" data-pk="<?= $t ? $t->id : 0 ?>" data-url="<?= $editUrl ?>" data-title="Enter translation"><?= $t ? htmlentities($t->value, ENT_QUOTES, 'UTF-8', false) : '' ?></a>
+                    <td class="<?= $t['locale'] ?>">
+                      <a href="#edit" class="editable status-<?= $t ? $t->status : 0 ?> locale-<?= $locale ?>" data-locale="<?= $locale ?>" data-name="<?= $locale . "|" . $key ?>" id="username" data-type="textarea" data-pk="<?= $t ? $t->id : 0 ?>" data-url="<?= $editUrl ?>" data-title="Enter translation"><?= $t ? htmlentities($t->value, ENT_QUOTES, 'UTF-8', false) : '' ?></a>
                     </td>
                 <?php endforeach; ?>
                 <?php if($deleteEnabled): ?>
@@ -172,10 +225,7 @@
 
         </tbody>
     </table>
-    <?php else: ?>
-        <p>Choose a group to display the group translations. If no groups are visible, make sure you have run the migrations and imported the translations.</p>
-
-    <?php endif; ?>
+    <?php } ?>
 </div>
 
 </body>

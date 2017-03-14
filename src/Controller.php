@@ -4,7 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controller as BaseController;
 use Barryvdh\TranslationManager\Models\Translation;
 use Illuminate\Support\Collection;
-
+use Illuminate\Support\Facades\DB;
 class Controller extends BaseController
 {
     /** @var \Barryvdh\TranslationManager\Manager  */
@@ -17,8 +17,12 @@ class Controller extends BaseController
 
     public function getIndex($group = null)
     {
+        $search = "";
+        //$groupAndKeyArray = [];
         $locales = $this->loadLocales();
         $groups = Translation::groupBy('group');
+        $groupAndKeyArray = array();
+
         $excludedGroups = $this->manager->getConfig('exclude_groups');
         if($excludedGroups){
             $groups->whereNotIn('group', $excludedGroups);
@@ -40,10 +44,13 @@ class Controller extends BaseController
         }
 
          return view('translation-manager::index')
+            ->with('search', $search)
+            //->with('groupAndKeyArray', $groupAndKeyArray)
             ->with('translations', $translations)
             ->with('locales', $locales)
-            ->with('groups', $groups)
             ->with('group', $group)
+            ->with('groups', $groups)
+            ->with('groupAndKeyArray', $groupAndKeyArray)
             ->with('numTranslations', $numTranslations)
             ->with('numChanged', $numChanged)
             ->with('editUrl', action('\Barryvdh\TranslationManager\Controller@postEdit', [$group]))
@@ -139,10 +146,59 @@ class Controller extends BaseController
 
     public function postPublish()
     {
-        $groups = func_get_args();
-        $group = implode('/', $groups);
+
+        //impostando $group = * forzo a fare il publish di tutti i gruppi
+        $group = "*";
+
         $this->manager->exportTranslations($group);
 
         return ['status' => 'ok'];
+    }
+
+    public function postFindOnDb(Request $request)
+    {
+        $search = $request->get('search');
+        $editUrl = "";
+        $group = "";
+        $groups = array();
+        $groupAndKeyArray = array();
+
+        $locales = $this->loadLocales();
+        $allTranslations = Translation::where('ltm_translations.value', 'like',  "%$search%")->get();
+
+        $numTranslations = count($allTranslations);
+
+        //echo "<br>num parole trovate: ".$numTranslations;
+        $translations = [];
+        foreach($allTranslations as $translation){
+            $translations[$translation->key][$translation->locale] = $translation;
+            $groupAndKeyArray[$translation->key] = $translation->group;
+            //echo "<br>parola: ".$translation->key;
+        }
+
+        $groups = Translation::groupBy('group');
+
+        $excludedGroups = $this->manager->getConfig('exclude_groups');
+        if($excludedGroups){
+            $groups->whereNotIn('group', $excludedGroups);
+        }
+        $groups = $groups->select('group')->get()->pluck('group', 'group');
+        if ($groups instanceof Collection) {
+            $groups = $groups->all();
+        }
+        $groups = [''=>'Choose a group'] + $groups;
+
+        return view('translation-manager::index')
+            ->with('search', $search)
+            //->with('groupAndKeyArray', $groupAndKeyArray)
+            ->with('translations', $translations)
+            ->with('locales', $locales)
+            ->with('group', $group)
+            ->with('groups', $groups)
+            ->with('groupAndKeyArray', $groupAndKeyArray)
+            ->with('numTranslations', $numTranslations)
+            // ->with('numChanged', $numChanged)
+            ->with('editUrl', action('\Barryvdh\TranslationManager\Controller@postFind', [$search]))
+            ->with('deleteEnabled', $this->manager->getConfig('delete_enabled'));
     }
 }

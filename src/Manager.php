@@ -147,8 +147,9 @@ class Manager{
     public function exportTranslations($group)
     {
         if(!in_array($group, $this->config['exclude_groups'])) {
-            if($group == '*')
+            if($group == '*') {
                 return $this->exportAllTranslations();
+            }
 
             if ($this->config['sort_keys'])
                 $tree = $this->makeTree(Translation::ofTranslatedGroup($group)->orderByGroupKeys('ltm_translations.key')->get());
@@ -160,7 +161,7 @@ class Manager{
                     $translations = $groups[$group];
                     $path = $this->app['path.lang'].'/'.$locale.'/'.$group.'.php';
                     $output = "<?php\n\nreturn ".var_export($translations, true).";\n";
-                    echo "path ".get_var_dump_output($path)." output ".get_var_dump_output($output);
+                    //echo "path ".get_var_dump_output($path)." output ".get_var_dump_output($output);
                     $this->files->put($path, $output);
                 }
             }
@@ -173,6 +174,7 @@ class Manager{
         $groups = Translation::whereNotNull('value')->selectDistinctGroup()->get('group');
 
         foreach($groups as $group){
+            //echo ("group: ".$group->group);
             $this->exportTranslations($group->group);
         }
     }
