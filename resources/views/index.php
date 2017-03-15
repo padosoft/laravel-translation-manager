@@ -147,23 +147,31 @@
         <form name="filter-form" method="POST" action="<?= action('\Barryvdh\TranslationManager\Controller@postFindOnDb') ?>" accept-charset="UTF-8" id="filter-form">
             <input type="hidden" name="_token" value="<?php echo csrf_token(); ?>">
             <div class="input-group custom-search-form">
-                <input type="text" class="form-control" name="search" value="<?php if (isset($search)) echo $search?>" placeholder="search">
+                <input type="text" class="form-control" id="search"  name="search" value="<?php if (isset($search)) echo $search?>" placeholder="search">
                 <span class="input-group-btn">
                     <button class="btn btn-default" type="submit" id="search-merchants">
                         <span class="glyphicon glyphicon-search"></span>
                     </button>
                     <?php if (isset($search) && $search != '') {?>
-                        <a href="javascript:void(0);" class="btn btn-danger del-filter" type="button" >
+                        <a href="javascript:void(0);" onclick="$('#search').val('')" class="btn btn-danger del-filter" type="button" >
                             <span class="glyphicon glyphicon-remove"></span>
                         </a>
                     <?php } ?>
                 </span>
             </div>
-            <?php if (isset($search) && $search != '') {?>
-                    <?php foreach($locales as $locale): ?>
-                        <b><?= $locale ?></b> <input type="checkbox" value="<?= $locale ?>" id="lang<?= $locale ?>" name="lang<?= $locale ?>" checked="checked">&nbsp;&nbsp;&nbsp;&nbsp;
+
+
+                    <?php foreach($locales as $locale):
+                        $langChecked = "";
+                        if(in_array($locale, $langSelectedArray)) {
+                            $langChecked = "checked";
+                        }
+                        //echo "lan ".$langChecked;
+                    ?>
+                        <b><?= $locale ?></b> <input type="checkbox" value="<?= $locale ?>" id="lang" name="lang[]" <?= $langChecked?>>&nbsp;&nbsp;&nbsp;&nbsp;
+
                     <?php endforeach; ?>
-            <?php } ?>
+
 
         </form>
 </div>
@@ -188,9 +196,19 @@
         <thead>
         <tr>
             <th width="15%">Group</th>
-            <th width="15%">Key</th>
-            <?php foreach($locales as $locale): ?>
+            <th width="15%" style="display:none">Key</th>
+            <?php
+            $languageArray = array();
+            $index = 0;
+            foreach($locales as $locale):
+                if(in_array($locale, $langSelectedArray)) {
+                    $languageArray[$index] = $locale;
+                    $index++;
+                ?>
                 <th class="<?=$locale ?>"><?= $locale ?></th>
+                <?php
+                }
+                ?>
             <?php endforeach; ?>
             <?php if($deleteEnabled): ?>
                 <th>&nbsp;</th>
@@ -207,14 +225,23 @@
             ?>
             <tr id="<?= $key ?>">
                 <td><?= $myGroup ?></td>
-                <td><?= $key ?></td>
-                <?php foreach($locales as $locale): ?>
-                    <?php $t = isset($translation[$locale]) ? $translation[$locale] : null?>
+                <td style="display:none"><?= $key ?></td>
+                <?php
+                $i = 0;
+                foreach($locales as $locale):
+                    if(in_array($locale, $langSelectedArray)) { ?>
+                        <?php $t = isset($translation[$locale]) ? $translation[$locale] : null ?>
 
-                    <td class="<?= $t['locale'] ?>">
-                      <a href="#edit" class="editable status-<?= $t ? $t->status : 0 ?> locale-<?= $locale ?>" data-locale="<?= $locale ?>" data-name="<?= $locale . "|" . $key ?>" id="username" data-type="textarea" data-pk="<?= $t ? $t->id : 0 ?>" data-url="<?= $editUrl ?>" data-title="Enter translation"><?= $t ? htmlentities($t->value, ENT_QUOTES, 'UTF-8', false) : '' ?></a>
-                    </td>
-                <?php endforeach; ?>
+                        <td class="<?= $languageArray[$i] ?>">
+                            <a href="#edit" class="editable status-<?= $t ? $t->status : 0 ?> locale-<?= $locale ?>"
+                               data-locale="<?= $locale ?>" data-name="<?= $locale . "|" . $key ?>" id="username"
+                               data-type="textarea" data-pk="<?= $t ? $t->id : 0 ?>" data-url="<?= $editUrl ?>"
+                               data-title="Enter translation"><?= $t ? htmlentities($t->value, ENT_QUOTES, 'UTF-8', false) : '' ?></a>
+                        </td>
+                        <?php
+                        $i++;
+                    }
+                endforeach; ?>
                 <?php if($deleteEnabled): ?>
                     <td>
                         <a href="<?= action('\Barryvdh\TranslationManager\Controller@postDelete', [$group, $key]) ?>" class="delete-key" data-confirm="Are you sure you want to delete the translations for '<?= $key ?>?"><span class="glyphicon glyphicon-trash"></span></a>

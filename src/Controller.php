@@ -18,8 +18,12 @@ class Controller extends BaseController
     public function getIndex($group = null)
     {
         $search = "";
-        //$groupAndKeyArray = [];
         $locales = $this->loadLocales();
+        $langSelectedArray = array();
+        foreach($locales as $locale) {
+            $langSelectedArray[] = $locale;
+        }
+
         $groups = Translation::groupBy('group');
         $groupAndKeyArray = array();
 
@@ -45,7 +49,7 @@ class Controller extends BaseController
 
          return view('translation-manager::index')
             ->with('search', $search)
-            //->with('groupAndKeyArray', $groupAndKeyArray)
+            ->with('langSelectedArray', $langSelectedArray)
             ->with('translations', $translations)
             ->with('locales', $locales)
             ->with('group', $group)
@@ -158,6 +162,10 @@ class Controller extends BaseController
     public function postFindOnDb(Request $request)
     {
         $search = $request->get('search');
+        $langSelectedArray = $request->get('lang');
+        if (is_null($langSelectedArray))
+            $langSelectedArray = array();
+        //dd($lang);
         $editUrl = "";
         $group = "";
         $groups = array();
@@ -190,7 +198,7 @@ class Controller extends BaseController
 
         return view('translation-manager::index')
             ->with('search', $search)
-            //->with('groupAndKeyArray', $groupAndKeyArray)
+            ->with('langSelectedArray', $langSelectedArray)
             ->with('translations', $translations)
             ->with('locales', $locales)
             ->with('group', $group)
