@@ -195,8 +195,8 @@
     <table class="table">
         <thead>
         <tr>
-            <th width="15%">Group</th>
-            <th width="15%" style="display:none">Key</th>
+            <th width="8%">Group</th>
+            <th width="12%">Key</th>
             <?php
             $languageArray = array();
             $index = 0;
@@ -225,7 +225,7 @@
             ?>
             <tr id="<?= $key ?>">
                 <td><?= $myGroup ?></td>
-                <td style="display:none"><?= $key ?></td>
+                <td><?= $key ?></td>
                 <?php
                 $i = 0;
                 foreach($locales as $locale):
