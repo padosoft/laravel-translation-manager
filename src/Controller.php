@@ -165,7 +165,7 @@ class Controller extends BaseController
         $langSelectedArray = $request->get('lang');
         if (is_null($langSelectedArray))
             $langSelectedArray = array();
-        //dd($lang);
+
         $editUrl = "";
         $group = "";
         $groups = array();
@@ -179,10 +179,17 @@ class Controller extends BaseController
         //echo "<br>num parole trovate: ".$numTranslations;
         $translations = [];
         foreach($allTranslations as $translation){
-            $translations[$translation->key][$translation->locale] = $translation;
-            $groupAndKeyArray[$translation->key] = $translation->group;
-            //echo "<br>parola: ".$translation->key;
-        }
+            $translationKey = $translation->key;
+            $translationGroup = $translation->group;
+            foreach($locales as $locale){
+                $translationNew = Translation::where('group', '=',  $translationGroup)
+                    ->where('ltm_translations.key', '=',  $translationKey)
+                    ->where('locale', '=', $locale)->first();
+
+                $translations[$translationKey][$locale] = $translationNew;
+                $groupAndKeyArray[$translationKey] = $translationGroup;
+            }
+       }
 
         $groups = Translation::groupBy('group');
 
