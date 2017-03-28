@@ -10,6 +10,7 @@ class Controller extends BaseController
     /** @var \Barryvdh\TranslationManager\Manager  */
     protected $manager;
 
+
     public function __construct(Manager $manager)
     {
         $this->manager = $manager;
@@ -17,6 +18,7 @@ class Controller extends BaseController
 
     public function getIndex($group = null)
     {
+        $separator = "***";
         $search = "";
         $locales = $this->loadLocales();
         $langSelectedArray = array();
@@ -25,7 +27,6 @@ class Controller extends BaseController
         }
 
         $groups = Translation::groupBy('group');
-        $groupAndKeyArray = array();
 
         $excludedGroups = $this->manager->getConfig('exclude_groups');
         if($excludedGroups){
@@ -44,17 +45,27 @@ class Controller extends BaseController
         $numTranslations = count($allTranslations);
         $translations = [];
         foreach($allTranslations as $translation){
-            $translations[$translation->key][$translation->locale] = $translation;
+            $translationKey = $translation->key;
+            $translationGroup = $translation->group;
+            foreach($locales as $locale){
+                $translationNew = Translation::where('group', '=',  $translationGroup)
+                    ->where('ltm_translations.key', '=',  $translationKey)
+                    ->where('locale', '=', $locale)->first();
+
+                //$translations[$translationKey][$locale] = $translationNew;
+                $translations[$translationGroup.$separator.$translationKey.$separator.$locale] = $translationNew;
+
+            }
         }
 
          return view('translation-manager::index')
+            ->with('separator', $separator)
             ->with('search', $search)
             ->with('langSelectedArray', $langSelectedArray)
             ->with('translations', $translations)
             ->with('locales', $locales)
             ->with('group', $group)
             ->with('groups', $groups)
-            ->with('groupAndKeyArray', $groupAndKeyArray)
             ->with('numTranslations', $numTranslations)
             ->with('numChanged', $numChanged)
             ->with('editUrl', action('\Barryvdh\TranslationManager\Controller@postEdit', [$group]))
@@ -161,6 +172,7 @@ class Controller extends BaseController
 
     public function postFindOnDb(Request $request)
     {
+        $separator = "***";
         $search = $request->get('search');
         $langSelectedArray = $request->get('lang');
         if (is_null($langSelectedArray))
@@ -169,7 +181,6 @@ class Controller extends BaseController
         $editUrl = "";
         $group = "";
         $groups = array();
-        $groupAndKeyArray = array();
 
         $locales = $this->loadLocales();
         $allTranslations = Translation::where('ltm_translations.value', 'like',  "%$search%")->get();
@@ -186,8 +197,9 @@ class Controller extends BaseController
                     ->where('ltm_translations.key', '=',  $translationKey)
                     ->where('locale', '=', $locale)->first();
 
-                $translations[$translationKey][$locale] = $translationNew;
-                $groupAndKeyArray[$translationKey] = $translationGroup;
+                //$translations[$translationKey][$locale] = $translationNew;
+                $translations[$translationGroup.$separator.$translationKey.$separator.$locale] = $translationNew;
+
             }
        }
 
@@ -204,13 +216,13 @@ class Controller extends BaseController
         $groups = [''=>'Choose a group'] + $groups;
 
         return view('translation-manager::index')
+            ->with('separator', $separator)
             ->with('search', $search)
             ->with('langSelectedArray', $langSelectedArray)
             ->with('translations', $translations)
             ->with('locales', $locales)
             ->with('group', $group)
             ->with('groups', $groups)
-            ->with('groupAndKeyArray', $groupAndKeyArray)
             ->with('numTranslations', $numTranslations)
             // ->with('numChanged', $numChanged)
             ->with('editUrl', action('\Barryvdh\TranslationManager\Controller@postFind', [$search]))

@@ -217,20 +217,33 @@
         </thead>
         <tbody>
 
-        <?php foreach($translations as $key => $translation):
+        <?php
+        $groupPrev = "";
+        $keyPrev = "";
+        foreach($translations as $index => $translation):
             //var_dump($translations);$group="ciao";
-            $myGroup = $group;
-            if (!$group) $myGroup = $groupAndKeyArray[$key];
-            $editUrl = action('\Barryvdh\TranslationManager\Controller@postEdit', $myGroup);
+            //echo "sepa ".$separator." index ".$index;exit;return 0;
+            list($group,$key,$value) = explode($separator,$index);
+
+            //$myGroup = $group;
+            //if (!$group) $myGroup = $groupAndKeyArray[$key];
+            $editUrl = action('\Barryvdh\TranslationManager\Controller@postEdit', $group);
+            //echo "<br>groupPrev: ".$groupPrev." - group ".$group." - keyPrev ".$keyPrev." - key ".$key;
+            if ($groupPrev != $group || $keyPrev != $key) :
+                $groupPrev = $group;
+                $keyPrev = $key;
             ?>
             <tr id="<?= $key ?>">
-                <td><?= $myGroup ?></td>
+                <td><?= $group ?></td>
                 <td><?= $key ?></td>
                 <?php
                 $i = 0;
                 foreach($locales as $locale):
                     if(in_array($locale, $langSelectedArray)) { ?>
-                        <?php $t = isset($translation[$locale]) ? $translation[$locale] : null ?>
+                        <?php
+                        $pos = $group.$separator.$key.$separator.$locale;
+                        //var_dump($translations[$pos]);
+                        $t = isset($translations[$pos]) ? $translations[$pos] : null ?>
 
                         <td class="<?= $languageArray[$i] ?>">
                             <a href="#edit" class="editable status-<?= $t ? $t->status : 0 ?> locale-<?= $locale ?>"
@@ -248,6 +261,7 @@
                     </td>
                 <?php endif; ?>
             </tr>
+            <?php endif; ?>
         <?php endforeach; ?>
 
         </tbody>
