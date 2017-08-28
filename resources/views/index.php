@@ -268,9 +268,9 @@
         </tbody>
     </table>
 
-    <?php else: ?>
+    <?php }else{ ?>
     <p>Choose a group to display the group translations. If no groups are visible, make sure you have run the migrations and imported the translations.</p>
-    <?php endif; ?>
+    <?php } ?>
 </div>
 
 </body>
