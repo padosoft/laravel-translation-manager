@@ -50,7 +50,7 @@
             });
 
             $("a.delete-key").click(function(event){
-                alert("delete me");
+
               event.preventDefault();
               var row = $(this).closest('tr');
               var url = $(this).attr('href');
@@ -104,6 +104,7 @@
 <body>
 <div style="width: 80%; margin: auto;">
     <h1>Translation Manager</h1>
+    <p>Warning, translations are not visible until they are exported back to the app/lang file, using 'php artisan translation:export' command or publish button.</p>
     <div class="alert alert-success success-import" style="display:none;">
         <p>Done importing, processed <strong class="counter">N</strong> items! Reload this page to refresh the groups!</p>
     </div>
@@ -111,7 +112,7 @@
         <p>Done searching for translations, found <strong class="counter">N</strong> items!</p>
     </div>
     <div class="alert alert-success success-publish" style="display:none;">
-        <p>Done publishing the translations !</p>
+        <p>Done publishing the translations for group '<?= $group ?>'!</p>
     </div>
     <?php if(Session::has('successPublish')) : ?>
         <div class="alert alert-info">
@@ -266,7 +267,10 @@
 
         </tbody>
     </table>
-    <?php } ?>
+
+    <?php else: ?>
+    <p>Choose a group to display the group translations. If no groups are visible, make sure you have run the migrations and imported the translations.</p>
+    <?php endif; ?>
 </div>
 
 </body>
