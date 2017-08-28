@@ -161,7 +161,9 @@ class Manager{
                     $translations = $groups[$group];
                     $path = $this->app['path.lang'].'/'.$locale.'/'.$group.'.php';
                     $output = "<?php\n\nreturn ".var_export($translations, true).";\n";
-                    //echo "path ".get_var_dump_output($path)." output ".get_var_dump_output($output);
+                    if (!file_exists($this->app['path.lang'].'/'.$locale)) {
+                        mkdir($this->app['path.lang'].'/'.$locale, 0755, true);
+                    }
                     $this->files->put($path, $output);
                 }
             }
