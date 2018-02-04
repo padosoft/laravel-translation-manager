@@ -183,9 +183,50 @@ class Controller extends BaseController
         $groups = array();
 
         $locales = $this->loadLocales();
-        $allTranslations = Translation::where('ltm_translations.value', 'like',  "%$search%")->get();
+        $search_html=htmlentities($search);
+        //dd(htmlentities($search) );
+
+        //se scrivo sidebar.specializzazione vuol dire che voglio cercare nel gruppo sidebar co chiave specializzazione
+        $pos = strrpos($search, ".");
+
+        $numTranslations = 0;
+
+        if ($pos !== false) {
+            $search_arr = explode(".", $search);
+            $allTranslations = Translation::where('ltm_translations.group',   $search_arr[0])
+                ->where('ltm_translations.key',   $search_arr[1])
+                ->get();
+            $numTranslations = count($allTranslations);
+        }
+
+        //se scrivo sidebar*specializzazione vuol dire che voglio cercare nei value solo del gruppo sidebar
+        $pos = strrpos($search, "*");
+
+        $numTranslations = 0;
+
+        if ($pos !== false) {
+            $search_arr = explode("*", $search);
+            $allTranslations = Translation::where('ltm_translations.group',   $search_arr[0])
+                ->where('ltm_translations.value',   'like',  "%$search_arr[1]%")
+                ->get();
+            $numTranslations = count($allTranslations);
+        }
+
+        //faccio una ricerca avendo convertito eventuali caratteri accentati nelle corrispondente entita html
+        if ($numTranslations == 0) {
+            $allTranslations = Translation::where('ltm_translations.value', 'like',  "%$search_html%")->get();
+        }
 
         $numTranslations = count($allTranslations);
+
+        //ricerco la parola senza convertire i caratteri accentati
+        if ($numTranslations == 0) {
+            $allTranslations = Translation::where('ltm_translations.value', 'like',  "%$search%")->get();
+        }
+
+        $numTranslations = count($allTranslations);
+
+
 
         //echo "<br>num parole trovate: ".$numTranslations;
         $translations = [];
@@ -201,7 +242,7 @@ class Controller extends BaseController
                 $translations[$translationGroup.$separator.$translationKey.$separator.$locale] = $translationNew;
 
             }
-       }
+        }
 
         $groups = Translation::groupBy('group');
 

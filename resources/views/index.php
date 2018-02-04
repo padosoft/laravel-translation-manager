@@ -105,6 +105,8 @@
 <div style="width: 80%; margin: auto;">
     <h1>Translation Manager</h1>
     <p>Warning, translations are not visible until they are exported back to the app/lang file, using 'php artisan translation:export' command or publish button.</p>
+    <div>Use dot to search in group/key, example: sidebar.general</div>
+    <div>Use * to search in group/value, example: sidebar*general</div>
     <div class="alert alert-success success-import" style="display:none;">
         <p>Done importing, processed <strong class="counter">N</strong> items! Reload this page to refresh the groups!</p>
     </div>
