@@ -26,36 +26,58 @@ class Controller extends BaseController
             $langSelectedArray[] = $locale;
         }
 
-        $groups = Translation::groupBy('group');
+        $groups = Translation::groupBy('package','group');
 
         $excludedGroups = $this->manager->getConfig('exclude_groups');
         if($excludedGroups){
             $groups->whereNotIn('group', $excludedGroups);
         }
 
-        $groups = $groups->select('group')->get()->pluck('group', 'group');
+        $groups = $groups->select(
+            DB::raw("IF(`package`<>'',CONCAT(`package`,'::',`group`),`group`) AS `group`")
+            )->orderBy('package','group')->get()->pluck('group', 'group');
         if ($groups instanceof Collection) {
             $groups = $groups->all();
         }
         $groups = [''=>'Choose a group'] + $groups;
-        $numChanged = Translation::where('group', $group)->where('status', Translation::STATUS_CHANGED)->count();
+        $package='';
+        $query=Translation::where('status', Translation::STATUS_CHANGED);
+        if (strpos($group,'::')!==false){
+            $package=substr($group,0,strpos($group,'::'));
+            $query->where('package',substr($group,0,strpos($group,'::')));
+            $group=substr($group,strpos($group,'::')+2);
+        }else{
+            $query->where('package','');
+        }
+        $numChanged = $query->where('group', $group)->count();
+        $query=Translation::where('group',$group);
+        if ($package!=''){
+            $query->where('package',$package);
+        }else{
+            $query->where('package','');
+        }
+        //dd($query->toSql());
+        $allTranslations = $query->orderBy('key', 'asc')->get();
 
-
-        $allTranslations = Translation::where('group', $group)->orderBy('key', 'asc')->get();
         $numTranslations = count($allTranslations);
         $translations = [];
         foreach($allTranslations as $translation){
             $translationKey = $translation->key;
             $translationGroup = $translation->group;
+            $translationPackage = $translation->package;
             foreach($locales as $locale){
                 $translationNew = Translation::where('group', '=',  $translationGroup)
+                    ->where('ltm_translations.package', '=',  $translationPackage)
                     ->where('ltm_translations.key', '=',  $translationKey)
                     ->where('locale', '=', $locale)->first();
 
                 //$translations[$translationKey][$locale] = $translationNew;
-                $translations[$translationGroup.$separator.$translationKey.$separator.$locale] = $translationNew;
+                $translations[$translationPackage.$separator.$translationGroup.$separator.$translationKey.$separator.$locale] = $translationNew;
 
             }
+        }
+        if ($package!=''){
+            $group=$package.'::'.$group;
         }
 
          return view('translation-manager::index')
@@ -121,10 +143,16 @@ class Controller extends BaseController
             $value = $request->get('value');
 
             list($locale, $key) = explode('|', $name, 2);
+            $package='';
+            if (strpos($group,'::')){
+                $package=substr($group,0,strpos($group,'::'));
+                $group=substr($group,strpos($group,'::')+2);
+            }
             $translation = Translation::firstOrNew([
                 'locale' => $locale,
                 'group' => $group,
                 'key' => $key,
+                'package' => $package,
             ]);
             $translation->value = (string) $value ?: null;
             $translation->status = Translation::STATUS_CHANGED;
@@ -159,11 +187,11 @@ class Controller extends BaseController
         return ['status' => 'ok', 'counter' => (int) $numFound];
     }
 
-    public function postPublish()
+    public function postPublish($group)
     {
 
         //impostando $group = * forzo a fare il publish di tutti i gruppi
-        $group = "*";
+        //$group = "*";
 
         $this->manager->exportTranslations($group);
 
@@ -196,13 +224,14 @@ class Controller extends BaseController
             $allTranslations = Translation::where('ltm_translations.group',   $search_arr[0])
                 ->where('ltm_translations.key',   $search_arr[1])
                 ->get();
+
             $numTranslations = count($allTranslations);
         }
 
         //se scrivo sidebar*specializzazione vuol dire che voglio cercare nei value solo del gruppo sidebar
         $pos = strrpos($search, "*");
 
-        $numTranslations = 0;
+        //$numTranslations = 0;
 
         if ($pos !== false) {
             $search_arr = explode("*", $search);
@@ -225,6 +254,7 @@ class Controller extends BaseController
         }
 
         $numTranslations = count($allTranslations);
+        //dd($allTranslations);
 
 
 
@@ -233,24 +263,29 @@ class Controller extends BaseController
         foreach($allTranslations as $translation){
             $translationKey = $translation->key;
             $translationGroup = $translation->group;
+            $translationPackage = $translation->package;
             foreach($locales as $locale){
                 $translationNew = Translation::where('group', '=',  $translationGroup)
                     ->where('ltm_translations.key', '=',  $translationKey)
+                    ->where('ltm_translations.package', '=',  $translationPackage)
                     ->where('locale', '=', $locale)->first();
 
                 //$translations[$translationKey][$locale] = $translationNew;
-                $translations[$translationGroup.$separator.$translationKey.$separator.$locale] = $translationNew;
+                $translations[$translationPackage.$separator.$translationGroup.$separator.$translationKey.$separator.$locale] = $translationNew;
 
             }
         }
+        //dd($translations);
 
-        $groups = Translation::groupBy('group');
+        $groups = Translation::groupBy('package','group');
 
         $excludedGroups = $this->manager->getConfig('exclude_groups');
         if($excludedGroups){
             $groups->whereNotIn('group', $excludedGroups);
         }
-        $groups = $groups->select('group')->get()->pluck('group', 'group');
+         $groups = $groups->select(
+             DB::raw("IF(`package`<>'',CONCAT(`package`,'::',`group`),`group`) AS `group`")
+         )->orderBy('package','group')->get()->pluck('group', 'group');
         if ($groups instanceof Collection) {
             $groups = $groups->all();
         }

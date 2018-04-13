@@ -114,7 +114,7 @@
         <p>Done searching for translations, found <strong class="counter">N</strong> items!</p>
     </div>
     <div class="alert alert-success success-publish" style="display:none;">
-        <p>Done publishing the translations for group '<?= $group ?>'!</p>
+        <p>Done publishing the translations for '<?= $group!=''?'group '.$group:'all groups' ?>'!</p>
     </div>
     <?php if(Session::has('successPublish')) : ?>
         <div class="alert alert-info">
@@ -138,7 +138,7 @@
         </form>
         <?php endif; ?>
         <?php if(isset($group)) : ?>
-            <form class="form-inline form-publish" method="POST" action="<?= action('\Barryvdh\TranslationManager\Controller@postPublish', $group)?>" data-remote="true" role="form" data-confirm="Are you sure you want to publish the translations group '<?= $group ?>? This will overwrite existing language files.">
+            <form class="form-inline form-publish" method="POST" action="<?= action('\Barryvdh\TranslationManager\Controller@postPublish', ($group!=''?$group:'*'))?>" data-remote="true" role="form" data-confirm="Are you sure you want to publish <?=$group!=''?'the translations group '.$group:' all translations' ?>? This will overwrite existing language files.">
                 <input type="hidden" name="_token" value="<?php echo csrf_token(); ?>">
                 <input type="hidden" name="groupAndKeyArray" value="<php echo serialize($groupAndKeyArray) ?>">
                 <button type="submit" class="btn btn-info" data-disable-with="Publishing.." >Publish translations</button>
@@ -198,6 +198,7 @@
     <table class="table">
         <thead>
         <tr>
+            <th width="8%">Package</th>
             <th width="8%">Group</th>
             <th width="12%">Key</th>
             <?php
@@ -221,30 +222,39 @@
         <tbody>
 
         <?php
+        $packagePrev = "";
         $groupPrev = "";
         $keyPrev = "";
+
         foreach($translations as $index => $translation):
             //var_dump($translations);$group="ciao";
             //echo "sepa ".$separator." index ".$index;exit;return 0;
-            list($group,$key,$value) = explode($separator,$index);
+            list($package,$group,$key,$value) = explode($separator,$index);
 
             //$myGroup = $group;
             //if (!$group) $myGroup = $groupAndKeyArray[$key];
+
             $editUrl = action('\Barryvdh\TranslationManager\Controller@postEdit', $group);
+            if($package!=''){
+                $editUrl = action('\Barryvdh\TranslationManager\Controller@postEdit', $package.'::'.$group);
+            }
             //echo "<br>groupPrev: ".$groupPrev." - group ".$group." - keyPrev ".$keyPrev." - key ".$key;
-            if ($groupPrev != $group || $keyPrev != $key) :
+            if ($groupPrev != $group || $keyPrev != $key|| $packagePrev != $package) :
+                $packagePrev = $package;
                 $groupPrev = $group;
                 $keyPrev = $key;
             ?>
             <tr id="<?= $key ?>">
+                <td><?= $package ?></td>
                 <td><?= $group ?></td>
                 <td><?= $key ?></td>
                 <?php
                 $i = 0;
                 foreach($locales as $locale):
+
                     if(in_array($locale, $langSelectedArray)) { ?>
                         <?php
-                        $pos = $group.$separator.$key.$separator.$locale;
+                        $pos = $package.$separator.$group.$separator.$key.$separator.$locale;
                         //var_dump($translations[$pos]);
                         $t = isset($translations[$pos]) ? $translations[$pos] : null ?>
 

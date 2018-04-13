@@ -51,7 +51,7 @@ return array(
      *	)
      */
     'exclude_dir' => array(
-        'vendor',
+        //'vendor',
     ),
 
 	/**

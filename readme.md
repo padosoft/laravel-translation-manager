@@ -107,6 +107,11 @@ Supply the group name to define which groups you want to publish.
 
 For example, `php artisan translations:export reminders` when you have 2 locales (en/nl), will write to `app/lang/en/reminders.php` and `app/lang/nl/reminders.php`
 
+To export packages translations you can set group as package::group 
+
+    $ php artisan translations:export package::*
+
+For example, `php artisan translations:expor
 ### Clean command
 
 The clean command will search for all translation that are NULL and delete them, so your interface is a bit cleaner. Note: empty translations are never exported.

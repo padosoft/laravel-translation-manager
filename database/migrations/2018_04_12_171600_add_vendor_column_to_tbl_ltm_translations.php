@@ -3,7 +3,7 @@
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class AddAutoincrementToTblLtmTranslations extends Migration {
+class AddVendorColumnToTblLtmTranslations extends Migration {
 
 	/**
 	 * Run the migrations.
@@ -14,7 +14,7 @@ class AddAutoincrementToTblLtmTranslations extends Migration {
 	{
 	    if (Schema::hasTable('ltm_translations')) {
             Schema::table('ltm_translations', function ($table) {
-                $table->increments('id')->change();
+                $table->string('package')->default('')->index();
             });
         }
 	}

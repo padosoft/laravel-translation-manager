@@ -22,8 +22,22 @@ class Translation extends Model{
     protected $table = 'ltm_translations';
     protected $guarded = array('id', 'created_at', 'updated_at');
 
+    public function scopeOfTranslatedPackage($query, $package)
+    {
+        return $query->where('package', $package)->whereNotNull('value');
+    }
+
     public function scopeOfTranslatedGroup($query, $group)
     {
+        if (strpos($group,'::')!==false){
+            $query->where('package',substr($group,0,strpos($group,'::')));
+            $group=substr($group,strpos($group,'::')+2);
+        }else{
+            $query->where('package','');
+        }
+        if ($group=='*'){
+            return $query->whereNotNull('value');
+        }
         return $query->where('group', $group)->whereNotNull('value');
     }
 
