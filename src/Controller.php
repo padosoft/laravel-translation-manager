@@ -35,7 +35,7 @@ class Controller extends BaseController
 
         $groups = $groups->select(
             DB::raw("IF(`package`<>'',CONCAT(`package`,'::',`group`),`group`) AS `group`")
-            )->orderBy('package','group')->get()->pluck('group', 'group');
+            )->orderBy('package')->orderBy(,'group')->get()->pluck('group', 'group');
         if ($groups instanceof Collection) {
             $groups = $groups->all();
         }
