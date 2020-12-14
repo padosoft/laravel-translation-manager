@@ -90,7 +90,7 @@ class Controller extends BaseController
             ->with('groups', $groups)
             ->with('numTranslations', $numTranslations)
             ->with('numChanged', $numChanged)
-            ->with('editUrl', action('\Barryvdh\TranslationManager\Controller@postEdit', [$group]))
+            ->with('editUrl', $group!==null?action('\Barryvdh\TranslationManager\Controller@postEdit', [$group]):'')
             ->with('deleteEnabled', $this->manager->getConfig('delete_enabled'));
     }
 
@@ -285,7 +285,7 @@ class Controller extends BaseController
         }
          $groups = $groups->select(
              DB::raw("IF(`package`<>'',CONCAT(`package`,'::',`group`),`group`) AS `group`")
-         )->orderBy('package','group')->get()->pluck('group', 'group');
+         )->orderBy('package')->orderBy('group')->get()->pluck('group', 'group');
         if ($groups instanceof Collection) {
             $groups = $groups->all();
         }
