@@ -1,31 +1,38 @@
 {
-    "name": "padosoft/laravel-translation-manager",
-    "description": "Manage Laravel Translations",
-    "keywords": ["laravel", "translations", "translator"],
-    "license": "MIT",
-    "authors": [
-        {
-            "name": "padosoft",
-            "email": "helpdesk@padosoft.com"
-        }
-    ],
-    "require": {
-        "php": ">=5.4.0",
-        "illuminate/support": "5.x|6.x|7.x|8.x",
-        "illuminate/translation": "5.x|6.x|7.x|8.x",
-        "symfony/finder": "~2.3|~3.0|~4.0|~5.0"
-    },
-    "autoload": {
-        "psr-4": {
-            "Barryvdh\\TranslationManager\\": "src/"
-        }
-    },
-    "extra": {
-        "laravel": {
-            "providers": [
-                "Barryvdh\\TranslationManager\\ManagerServiceProvider"
-            ]
-        }
-    },
-    "minimum-stability": "stable"
+  "name": "padosoft/laravel-translation-manager",
+  "description": "Manage Laravel Translations",
+  "keywords": [
+    "laravel",
+    "translations",
+    "translator"
+  ],
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "padosoft",
+      "email": "helpdesk@padosoft.com"
+    }
+  ],
+  "require": {
+    "php": ">=5.4.0",
+    "illuminate/support": "5.x|6.x|7.x|^8.0|^9.0",
+    "illuminate/translation": "5.x|6.x|7.x|^8.0|^9.0",
+    "symfony/finder": "~2.3|~3.0|~4.0|~5.0|~6.0"
+  },
+  "require-dev": {
+    "roave/security-advisories": "dev-latest"
+  },
+  "autoload": {
+    "psr-4": {
+      "Barryvdh\\TranslationManager\\": "src/"
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "Barryvdh\\TranslationManager\\ManagerServiceProvider"
+      ]
+    }
+  },
+  "minimum-stability": "stable"
 }
