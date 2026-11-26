@@ -221,7 +221,11 @@ class Manager{
             if ($package!=''){
                 $group=$package.'::'.$group;
             }
-            Translation::ofTranslatedGroup($group)->update(array('status' => Translation::STATUS_SAVED));
+            // Only rows not yet saved: updating the whole group also rewrites updated_at on every row,
+            // so each export (one per pod at startup) would rewrite the entire table.
+            Translation::ofTranslatedGroup($group)
+                ->where('status', '!=', Translation::STATUS_SAVED)
+                ->update(array('status' => Translation::STATUS_SAVED));
         }
     }
 
